@@ -1,6 +1,10 @@
-/** Single source of truth for the IA. The nav mega menus, the use-case and
- *  partner hubs, and the footer all read from here so a slug only ever changes
- *  in one place. */
+/** Single source of truth for the IA. The nav menu, the use-case and partner
+ *  hubs, and the footer all read from here so a slug only ever changes in one
+ *  place. */
+
+/** How many industries the nav menu shows before "All use cases". The full
+ *  list stays reachable from /use-cases. */
+export const NAV_INDUSTRY_CAP = 4;
 
 export interface NavItem {
   name: string;
@@ -120,6 +124,8 @@ export const useCaseCategories: NavCategory[] = [
   },
 ];
 
+/** Partners is a plain top-level link to /partners. This list is kept for the
+ *  hub page and footer so the partner slugs still change in one place. */
 export const partnerCategories: NavCategory[] = [
   {
     key: 'become',
@@ -142,23 +148,25 @@ export const partnerCategories: NavCategory[] = [
       },
     ],
   },
+];
+
+/** Low-frequency destinations grouped under one "Resources" trigger so the
+ *  primary bar stays at five links. No blog exists yet; add it here when it does. */
+export const resourceItems: NavItem[] = [
   {
-    key: 'find',
-    label: 'Find a partner',
-    items: [
-      {
-        name: 'Find a partner',
-        desc: 'Need delivery capacity or conformance sign-off? We will introduce you.',
-        href: '/partners#find-a-partner',
-      },
-      {
-        name: 'What partners can help with',
-        desc: 'Remediation, manual testing, VPAT review, and standing up a programme.',
-        href: '/partners#find-a-partner',
-      },
-    ],
+    name: 'Free scan',
+    desc: 'Run one page through limena and see the first findings, no account needed.',
+    href: '/scan',
+  },
+  {
+    name: 'Partners',
+    desc: 'Service providers, consultancies and incubators who deliver with limena.',
+    href: '/partners',
   },
 ];
+
+/** The console sign-in. Lives in the utility cluster, not the primary bar. */
+export const SIGN_IN_HREF = 'https://console.limena.app/signin';
 
 /** Flat lookup for breadcrumbs and cross-links. */
 export const allUseCases: NavItem[] = useCaseCategories.flatMap((c) => c.items);
