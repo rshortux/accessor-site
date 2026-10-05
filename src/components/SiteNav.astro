@@ -1,30 +1,22 @@
 ---
 import Logo from './Logo.astro';
-import { useCaseCategories, partnerCategories } from '../data/nav';
+import { useCaseCategories, resourceItems, NAV_INDUSTRY_CAP, SIGN_IN_HREF } from '../data/nav';
 
 interface Props {
-  active?: 'platform' | 'usecases' | 'partners' | 'pricing' | 'about' | '';
+  /** 'partners' is kept for the partner pages and lights the Resources trigger. */
+  active?: 'platform' | 'usecases' | 'pricing' | 'resources' | 'partners' | 'about' | '';
 }
 const { active = '' } = Astro.props;
+const resourcesActive = active === 'resources' || active === 'partners';
 
-const menus = [
-  {
-    id: 'usecases',
-    label: 'Use cases',
-    width: 840,
-    cats: useCaseCategories,
-    allHref: '/use-cases',
-    allLabel: 'All use cases',
-  },
-  {
-    id: 'partners',
-    label: 'Partners',
-    width: 780,
-    cats: partnerCategories,
-    allHref: '/partners',
-    allLabel: 'Partner overview',
-  },
-];
+/** One menu, three columns, every column visible at once. The industry column
+ *  is capped and ends with the link to the full list. */
+const columns = useCaseCategories.map((c) => {
+  const capped = c.key === 'industry' && c.items.length > NAV_INDUSTRY_CAP;
+  return { ...c, items: capped ? c.items.slice(0, NAV_INDUSTRY_CAP) : c.items, capped };
+});
+const allHref = '/use-cases';
+const allLabel = 'All use cases';
 ---
 
 <header class="nav">
@@ -40,97 +32,139 @@ const menus = [
     </button>
 
     <div class="nav__items">
-      <a href="/platform" class="nav__link" aria-current={active === 'platform' ? 'page' : undefined}>Platform</a>
+      <div class="nav__primary">
+        <a href="/platform" class="nav__link" aria-current={active === 'platform' ? 'page' : undefined}>Platform</a>
 
-      {
-        menus.map((m) => (
-          <div class="nav__menu" data-menu={m.id}>
-            <button
-              type="button"
-              class="nav__trigger"
-              aria-expanded="false"
-              aria-haspopup="true"
-              aria-controls={`panel-${m.id}`}
-              aria-current={active === m.id ? 'page' : undefined}
-              data-trigger
-            >
-              {m.label}
-              <span class="nav__caret" aria-hidden="true">▾</span>
-            </button>
+        <div class="nav__menu" data-menu="usecases" data-all-href={allHref}>
+          <button
+            type="button"
+            class="nav__trigger"
+            aria-expanded="false"
+            aria-haspopup="true"
+            aria-controls="panel-usecases"
+            aria-current={active === 'usecases' ? 'page' : undefined}
+            data-trigger
+          >
+            Use cases
+            <span class="nav__caret" aria-hidden="true">▾</span>
+          </button>
 
-            <div class="nav__panel" id={`panel-${m.id}`} style={`width:${m.width}px`} data-panel hidden>
-              <div class="nav__panelGrid">
-                <div class="nav__rail" role="tablist" aria-orientation="vertical" aria-label={`${m.label} categories`}>
-                  {m.cats.map((c, i) => (
-                    <button
-                      type="button"
-                      class="nav__cat"
-                      role="tab"
-                      id={`tab-${m.id}-${c.key}`}
-                      aria-controls={`pane-${m.id}-${c.key}`}
-                      aria-selected={i === 0 ? 'true' : 'false'}
-                      tabindex={i === 0 ? 0 : -1}
-                      data-cat={c.key}
-                    >
-                      <span class="nav__catLabel">{c.label}</span>
-                      <span class="nav__catArrow" aria-hidden="true">→</span>
-                    </button>
-                  ))}
-                  <div class="nav__railFoot">
-                    <a href={m.allHref} class="nav__allLink">{m.allLabel} →</a>
-                  </div>
-                </div>
-
-                <div class="nav__panes">
-                  {m.cats.map((c, i) => (
-                    <div
-                      class="nav__pane"
-                      role="tabpanel"
-                      id={`pane-${m.id}-${c.key}`}
-                      aria-labelledby={`tab-${m.id}-${c.key}`}
-                      hidden={i !== 0}
-                    >
+          <div class="nav__panel nav__panel--wide" id="panel-usecases" data-panel hidden>
+            <div class="nav__cols">
+              {
+                columns.map((c) => (
+                  <div class="nav__col">
+                    <h2 class="nav__colHead" id={`col-${c.key}`}>{c.label}</h2>
+                    <ul class="nav__colList" aria-labelledby={`col-${c.key}`}>
                       {c.items.map((item) => (
-                        <a href={item.href} class="nav__item">
-                          <span class="nav__itemName">{item.name}</span>
-                          <span class="nav__itemDesc">{item.desc}</span>
-                        </a>
+                        <li>
+                          <a href={item.href} class="nav__item">
+                            <span class="nav__itemName">{item.name}</span>
+                            <span class="nav__itemDesc">{item.desc}</span>
+                          </a>
+                        </li>
                       ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
+                    </ul>
+                    {c.capped && (
+                      <a href={allHref} class="nav__allLink">
+                        {allLabel} →
+                      </a>
+                    )}
+                  </div>
+                ))
+              }
             </div>
           </div>
-        ))
-      }
+        </div>
 
-      <a href="/pricing" class="nav__link" aria-current={active === 'pricing' ? 'page' : undefined}>Pricing</a>
-      <a href="/about" class="nav__link" aria-current={active === 'about' ? 'page' : undefined}>About</a>
-      <a href="/contact" class="btn btn--primary nav__cta">Book a demo</a>
+        <a href="/pricing" class="nav__link" aria-current={active === 'pricing' ? 'page' : undefined}>Pricing</a>
+
+        <div class="nav__menu nav__menu--compact" data-menu="resources">
+          <button
+            type="button"
+            class="nav__trigger"
+            aria-expanded="false"
+            aria-haspopup="true"
+            aria-controls="panel-resources"
+            aria-current={resourcesActive ? 'page' : undefined}
+            data-trigger
+          >
+            Resources
+            <span class="nav__caret" aria-hidden="true">▾</span>
+          </button>
+
+          <div class="nav__panel nav__panel--compact" id="panel-resources" data-panel hidden>
+            <ul class="nav__colList nav__compactList" aria-label="Resources">
+              {
+                resourceItems.map((item) => (
+                  <li>
+                    <a href={item.href} class="nav__item">
+                      <span class="nav__itemName">{item.name}</span>
+                      <span class="nav__itemDesc">{item.desc}</span>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+
+        <a href="/about" class="nav__link" aria-current={active === 'about' ? 'page' : undefined}>About</a>
+      </div>
+
+      <div class="nav__utility">
+        <a href={SIGN_IN_HREF} class="nav__link nav__signin">Sign in</a>
+        <a href="/contact" class="btn btn--primary nav__cta">Book a demo</a>
+      </div>
     </div>
   </nav>
 
   <div class="nav__mobile" id="nav-mobile" hidden>
     <a href="/platform" class="nav__mobileTop">Platform</a>
-    {
-      menus.map((m) => (
-        <section class="nav__mobileGroup">
-          <h2 class="nav__mobileHead">{m.label}</h2>
-          {m.cats.map((c) => (
-            <div>
-              <h3 class="nav__mobileCat">{c.label}</h3>
+
+    <section class="nav__mobileGroup" aria-labelledby="mobile-usecases">
+      <h2 class="nav__mobileHead" id="mobile-usecases">Use cases</h2>
+      {
+        columns.map((c) => (
+          <details class="nav__mobileCat">
+            <summary class="nav__mobileCatSummary">
+              <span>{c.label}</span>
+              <span class="nav__mobileCatCount" aria-hidden="true">{c.items.length}</span>
+            </summary>
+            <ul class="nav__mobileList">
               {c.items.map((item) => (
-                <a href={item.href} class="nav__mobileItem">{item.name}</a>
+                <li>
+                  <a href={item.href} class="nav__mobileItem">
+                    {item.name}
+                  </a>
+                </li>
               ))}
-            </div>
-          ))}
-          <a href={m.allHref} class="nav__allLink">{m.allLabel} →</a>
-        </section>
-      ))
-    }
+            </ul>
+          </details>
+        ))
+      }
+      <a href={allHref} class="nav__allLink nav__mobileAll">{allLabel} →</a>
+    </section>
+
     <a href="/pricing" class="nav__mobileTop">Pricing</a>
+
+    <section class="nav__mobileGroup" aria-labelledby="mobile-resources">
+      <h2 class="nav__mobileHead" id="mobile-resources">Resources</h2>
+      <ul class="nav__mobileList nav__mobileList--flush">
+        {
+          resourceItems.map((item) => (
+            <li>
+              <a href={item.href} class="nav__mobileItem">
+                {item.name}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
     <a href="/about" class="nav__mobileTop">About</a>
+    <a href={SIGN_IN_HREF} class="nav__mobileTop">Sign in</a>
     <a href="/contact" class="btn btn--primary nav__mobileCta">Book a demo</a>
   </div>
 </header>
@@ -167,9 +201,28 @@ const menus = [
   }
 
   .nav__items {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-left: 28px;
+  }
+
+  .nav__primary,
+  .nav__utility {
     display: flex;
     align-items: center;
     gap: 4px;
+  }
+
+  .nav__utility {
+    margin-left: auto;
+  }
+
+  .nav__signin {
+    color: var(--ink-700);
   }
 
   .nav__link,
@@ -222,14 +275,20 @@ const menus = [
   }
 
   .nav__menu {
+    position: static;
+  }
+
+  .nav__menu--compact {
     position: relative;
   }
 
+  /* Anchored to the right edge of the nav items, not centred under the
+     trigger, so a wide panel never runs off the viewport near the breakpoint. */
   .nav__panel {
     position: absolute;
     top: calc(100% + 10px);
-    left: 50%;
-    transform: translateX(-50%);
+    right: 0;
+    width: max-content;
     max-width: calc(100vw - 32px);
     background: var(--white);
     border: 1px solid var(--border-strong);
@@ -254,64 +313,50 @@ const menus = [
     display: none;
   }
 
-  .nav__panelGrid {
-    display: grid;
-    grid-template-columns: 238px 1fr;
+  .nav__panel--compact {
+    right: auto;
+    left: 0;
+    width: 340px;
   }
 
-  .nav__rail {
-    background: var(--rail);
-    padding: 24px 22px;
+  .nav__compactList {
+    padding: 20px 22px;
+  }
+
+  .nav__cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0 40px;
+    width: 960px;
+    max-width: 100%;
+    padding: 28px 32px 30px;
+  }
+
+  .nav__col {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    min-width: 0;
   }
 
-  .nav__cat {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    width: 100%;
-    padding: 13px 16px;
-    /* All four edges declared, so the UA button border can never survive on one
-       of them (known trap in the build spec). */
-    border: 1px solid transparent;
-    border-radius: var(--r-pill);
-    background: transparent;
-    text-align: left;
-    font-family: var(--sans);
-    cursor: pointer;
-  }
-
-  .nav__cat[aria-selected='true'] {
-    background: var(--evergreen);
-  }
-
-  .nav__catLabel {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--ink-700);
-  }
-
-  .nav__catArrow {
-    font-size: 14px;
-    flex: none;
-    color: var(--muted);
-  }
-
-  .nav__cat[aria-selected='true'] .nav__catLabel {
+  .nav__colHead {
+    font-family: var(--mono);
+    font-size: 11px;
     font-weight: 600;
-    color: var(--paper);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green-hover);
+    margin: 0 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
   }
 
-  .nav__cat[aria-selected='true'] .nav__catArrow {
-    color: var(--green-light);
-  }
-
-  .nav__railFoot {
-    margin-top: auto;
-    padding-top: 18px;
+  .nav__colList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
 
   .nav__allLink {
@@ -325,19 +370,8 @@ const menus = [
     color: var(--evergreen);
   }
 
-  .nav__panes {
-    padding: 26px 28px;
-  }
-
-  .nav__pane {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 22px 28px;
-    align-content: start;
-  }
-
-  .nav__pane[hidden] {
-    display: none;
+  .nav__col > .nav__allLink {
+    margin-top: 18px;
   }
 
   .nav__item {
@@ -443,7 +477,7 @@ const menus = [
     }
 
     .nav__mobileGroup {
-      padding: 20px 0;
+      padding: 14px 0 20px;
       border-bottom: 1px solid var(--border);
     }
 
@@ -451,25 +485,74 @@ const menus = [
       font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.02em;
-      margin-bottom: 4px;
+      margin: 0 0 6px;
     }
 
     .nav__mobileCat {
-      font-family: var(--mono);
-      font-size: 11px;
+      border-top: 1px solid var(--border);
+    }
+
+    .nav__mobileCat:first-of-type {
+      border-top: none;
+    }
+
+    .nav__mobileCatSummary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      font-size: 16px;
       font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--green-hover);
-      margin: 18px 0 6px;
+      color: var(--ink-700);
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .nav__mobileCatSummary::-webkit-details-marker {
+      display: none;
+    }
+
+    .nav__mobileCatSummary::after {
+      content: '+';
+      font-size: 18px;
+      line-height: 1;
+      color: var(--muted);
+    }
+
+    .nav__mobileCat[open] > .nav__mobileCatSummary::after {
+      content: '−';
+    }
+
+    .nav__mobileCatCount {
+      margin-left: auto;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .nav__mobileList {
+      list-style: none;
+      margin: 0;
+      padding: 0 0 10px 14px;
     }
 
     .nav__mobileItem {
       display: block;
-      padding: 7px 0;
+      padding: 8px 0;
       font-size: 16px;
       color: var(--ink-700);
       text-decoration: none;
+    }
+
+    .nav__mobileList--flush {
+      padding-left: 0;
+      padding-bottom: 0;
+    }
+
+    .nav__mobileAll {
+      display: inline-block;
+      margin-top: 14px;
     }
 
     .nav__mobileCta {
@@ -503,47 +586,34 @@ const menus = [
 
     for (const menu of menus) {
       const trigger = menu.querySelector<HTMLButtonElement>('[data-trigger]')!;
-      const tabs = Array.from(menu.querySelectorAll<HTMLButtonElement>('[data-cat]'));
+      const allHref = menu.dataset.allHref;
 
-      // Hover opens, click toggles. Pointer only, so touch gets a clean tap.
+      // Hover opens for mouse and pen. A click on a hover-opened trigger goes
+      // to the hub instead of closing the menu the visitor just opened.
+      // Keyboard and touch never see pointerenter, so click toggles for them.
+      let openedByHover = false;
+
       menu.addEventListener('pointerenter', (e) => {
         if ((e as PointerEvent).pointerType === 'touch') return;
+        openedByHover = true;
         setOpen(menu, true);
       });
       menu.addEventListener('pointerleave', (e) => {
         if ((e as PointerEvent).pointerType === 'touch') return;
+        openedByHover = false;
         setOpen(menu, false);
       });
 
       trigger.addEventListener('click', () => {
-        setOpen(menu, trigger.getAttribute('aria-expanded') !== 'true');
-      });
-
-      const select = (tab: HTMLButtonElement, focus = false) => {
-        for (const t of tabs) {
-          const on = t === tab;
-          t.setAttribute('aria-selected', on ? 'true' : 'false');
-          t.tabIndex = on ? 0 : -1;
-          const pane = document.getElementById(t.getAttribute('aria-controls')!);
-          pane?.toggleAttribute('hidden', !on);
+        const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+        if (isOpen && openedByHover) {
+          // Hover already opened it. Go to the hub if there is one; otherwise
+          // leave the menu open rather than snapping it shut under the pointer.
+          if (allHref) window.location.assign(allHref);
+          return;
         }
-        if (focus) tab.focus();
-      };
-
-      for (const [i, tab] of tabs.entries()) {
-        tab.addEventListener('click', () => select(tab));
-        tab.addEventListener('pointerenter', (e) => {
-          if ((e as PointerEvent).pointerType === 'touch') return;
-          select(tab);
-        });
-        tab.addEventListener('keydown', (e) => {
-          const keys = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 } as Record<string, number>;
-          const step = keys[e.key];
-          if (!step) return;
-          e.preventDefault();
-          select(tabs[(i + step + tabs.length) % tabs.length], true);
-        });
-      }
+        setOpen(menu, !isOpen);
+      });
 
       // Escape closes and returns focus to the trigger; tabbing out closes too.
       menu.addEventListener('keydown', (e) => {

@@ -68,8 +68,8 @@
   /* Radius */
   --r-card: 16px;
   --r-card-sm: 14px;
-  --r-control: 12px;
-  --r-control-sm: 10px;
+  --r-control: 2px;
+  --r-control-sm: 2px;
   --r-pill: 999px;
 
   /* Shadow */

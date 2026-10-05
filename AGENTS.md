@@ -102,7 +102,7 @@ customers".
 | `Partner-Consultancies` | `/partners/consultancies` |
 | `Partner-Incubators` | `/partners/incubators` |
 | `Pricing-v4` | `/pricing` |
-| `Scan` | `/scan` (footer only, not in nav) |
+| `Scan` | `/scan` (nav: Resources, and footer) |
 | `About` | `/about` |
 | `Contact` | `/contact` |
 | `Security` | `/security` |
